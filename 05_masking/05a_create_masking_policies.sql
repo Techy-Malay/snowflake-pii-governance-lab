@@ -11,26 +11,33 @@ Design Notes:
 */
 USE DATABASE PII_GOV_LAB;
 USE SCHEMA RAW;
+
+-- ---------------------------------------------------------------------------
 -- Mask EMAIL values
+-- ---------------------------------------------------------------------------
 CREATE OR REPLACE MASKING POLICY mask_email_by_role
 AS (val STRING) RETURNS STRING ->
   CASE
-    WHEN CURRENT_ROLE() IN ('PII_ADMIN') THEN val
+    WHEN IS_ROLE_IN_SESSION('PII_ADMIN') THEN val
     ELSE REGEXP_REPLACE(val, '(^.).*(@.*$)', '\\1*****\\2')
   END;
 
--- Mask NAME values
+-- ---------------------------------------------------------------------------
+-- Mask FULL NAME values
+-- ---------------------------------------------------------------------------
 CREATE OR REPLACE MASKING POLICY mask_name_by_role
 AS (val STRING) RETURNS STRING ->
   CASE
-    WHEN CURRENT_ROLE() IN ('PII_ADMIN') THEN val
+    WHEN IS_ROLE_IN_SESSION('PII_ADMIN') THEN val
     ELSE 'REDACTED'
   END;
 
--- Mask NATIONAL IDENTIFIER values (e.g., SSN)
-CREATE OR REPLACE MASKING POLICY mask_national_id_by_role
+-- ---------------------------------------------------------------------------
+-- Mask SSN / National Identifier values
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE MASKING POLICY mask_ssn_by_role
 AS (val STRING) RETURNS STRING ->
   CASE
-    WHEN CURRENT_ROLE() IN ('PII_ADMIN') THEN val
+    WHEN IS_ROLE_IN_SESSION('PII_ADMIN') THEN val
     ELSE 'XXX-XX-XXXX'
   END;
