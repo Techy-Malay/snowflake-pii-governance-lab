@@ -41,6 +41,65 @@ using native SQL policies.
 - Same table, different query results based on role
 - Governance aligned with **least privilege** principles
 
+## Validation Notes
+
+Dynamic data masking is validated using a dedicated analyst user that does not
+inherit any administrative roles.
+
+Snowflake evaluates masking policies based on effective role privileges at
+query execution time. As a result, sessions using ACCOUNTADMIN (or users
+inheriting privileged roles) are not suitable for validating masking behavior,
+because they bypass masking by design.
+
+## Validation Results
+
+When queried using different personas:
+
+- **PII_ADMIN**
+  - Full PII visible
+  - Used for governance administration
+
+- **PII_ANALYST**
+  - PII masked (EMAIL, FULL_NAME, SSN)
+  - Represents a real data consumer
+
+Screenshots in the `/screenshots` folder demonstrate this behavior.
+
+---
+
+## Repository Structure
+
+```
+.
+├── 01_setup_environment.sql
+├── 02_table_design.sql
+├── 03_sample_data.sql
+├── 04_classification_and_tagging.sql
+├── 05_masking/
+│   ├── 05a_create_masking_policies.sql
+│   ├── 05b_apply_masking_using_system_tags.sql
+│   └── 05c_grant_select_and_validate.sql
+├── 06_validation_users/
+│   └── 06_create_validation_users.sql
+├── screenshots/
+│   ├── admin_unmasked.png
+│   └── analyst_masked.png
+└── README.md
+```
+
+---
+
+## How to Run (Quick Start)
+
+1. Run setup and table scripts (01–03)
+2. Run classification and tagging (04)
+3. Create masking policies (05a)
+4. Apply masking policies (05b)
+5. Grant access and review validation steps (05c)
+6. Create validation analyst user (06)
+7. Validate masking using the analyst user
+
+---
 ---
 
 ## What This Lab Intentionally Excludes
@@ -89,6 +148,9 @@ Custom classification is recommended for domains with
 business-specific identifiers or regulatory requirements,
 and is best introduced as an advanced, follow-on capability.
 
+
+---
+
 ## Further Exploration
 
 For readers who want to explore the **full Horizon governance workflow**,
@@ -99,32 +161,6 @@ refer to Snowflake’s official guide:
 
 This project should be viewed as a **focused architectural subset**
 of the broader Horizon platform.
-
----
-
-## Repository Structure
-snowflake-pii-governance-lab/
-│
-├── README.md
-│
-├── 01_setup/
-│ └── 01_setup_environment.sql
-│
-├── 02_schema/
-│ └── 02_create_users_table.sql
-│
-├── 03_data/
-│ └── 03_insert_sample_users.sql
-│
-├── 04_classification/
-│ ├── 04_run_classification.sql
-│ └── 05_verify_classification_tags.sql
-│
-├── 05_masking/
-│ └── (masking policies and validation scripts)
-│
-└── 05_architecture_notes/
-└── pii_governance_design_notes.md
 
 ---
 
@@ -140,3 +176,4 @@ Senior / Principal Data Architect Track
 This lab is not a feature checklist.
 It is a **design demonstration** showing how governance can be enforced
 *close to the data*, at scale, and without operational complexity.
+
